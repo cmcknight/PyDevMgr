@@ -24,7 +24,9 @@ The main window has the following controls:
 | Launch | The launch button launches the application that is currently selected in the scroll window. |
 | Close | The close button closes pylaunch. |
 
-An application may also be launched by double-clicking on its name.
+Double-clicking on a managed application will launch a context menu that offers the capability to edit, launch, or delete the selected managed application.
+
+Right-clicking on a managed application will launch the edit dialog.
 
 ## Add New Application
 
