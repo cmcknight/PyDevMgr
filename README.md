@@ -13,7 +13,7 @@ The task parameters are stored in a YAML-formatted file in the application direc
 # pydevmgr.cfg
 
 - command: ~/bin/ffdev
-  description: Farmer Frog Developent Environment
+  description: Farmer Frog Development Environment
   invoked: 1
   task_name: Farmer Frog Dev
 ```
