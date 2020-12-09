@@ -1,100 +1,206 @@
-import sys
 import os
-import yaml
+import sys
+
 import wx
+import yaml
 from ObjectListView import ObjectListView, ColumnDefn
 
-class TaskObject():
-    def __init__(self):
-        self.task_name = ''
-        self.description = ''
-        self.command = ''
-        self.invoked = 0;
+from EditorDialog import EditorDialog
+from TaskObject import TaskObject
 
-    def __init__(self, dict):
-        self.task_name = dict['task_name']
-        self.description = dict['description']
-        self.command = dict['command']
-        self.invoked = dict['invoked']
 
 class MainPanel(wx.Panel):
+    """
+    The MainPanel class contains the controls and related logic
+    for the PyDevMgr application.
+    """
+
     def __init__(self, parent):
+        """
+        Class constructor
+        """
         super().__init__(parent)
 
+        font = wx.Font(14, wx.SWISS, wx.NORMAL, wx.NORMAL)
+        self.cfg_filename = sys.path[0] + '/pydevmgr.cfg'
         self.tasks = []
-        
+        self.__load_tasks()
+
         # set up the main sizer
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        self.tasksOlv = ObjectListView(self, style=wx.LC_REPORT | wx.SUNKEN_BORDER, useAlternateBackColors=False,typingSearchesSortColumn=False)
-        self.tasksOlv.SetColumns([ColumnDefn('Task', 'left', -1, 'task_name', isSpaceFilling=True, isEditable=False, isSearchable=False)])
-        self.load_tasks()
-        self.tasksOlv.SetObjects(self.tasks)
-        self.tasksOlv.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.__item_activated)
+        # set up the ObjectListView control
+        self.olv_tasks = ObjectListView(self, style=wx.LC_REPORT | wx.SUNKEN_BORDER,
+                                        useAlternateBackColors=False,
+                                        typingSearchesSortColumn=False)
+        self.olv_tasks.SetColumns([ColumnDefn('Task', 'left', -1, 'task_name',
+                                              isSpaceFilling=True, isEditable=False,
+                                              isSearchable=False)])
+        self.olv_tasks.SetObjects(self.tasks)
+        self.olv_tasks.SetFont(font)
+        main_sizer.Add(self.olv_tasks, 1, wx.EXPAND | wx.LEFT | wx.TOP | wx.RIGHT, 10)
 
+        # ObjectListView control event handlers
+        self.olv_tasks.Bind(wx.EVT_KEY_DOWN, self.__on_key_down)
+        self.olv_tasks.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.__launch_command)
+        self.olv_tasks.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.__unselect_item)
+        self.olv_tasks.Bind(wx.EVT_LIST_ITEM_SELECTED, self.__select_item)
 
-        # idx = 0
-        # index = self.list.InsertItem(idx, 'Appl 1')
-        main_sizer.Add(self.tasksOlv, 1, wx.EXPAND | wx.LEFT | wx.TOP | wx.RIGHT, 10)
-
+        # add the CRUD buttons
         row_sizer = wx.BoxSizer()
-        self.addButton = wx.Button(self, wx.ID_ANY, size=(32,32), label="+")
-        self.addButton.Bind(wx.EVT_BUTTON, self.__add_new_task)
-        row_sizer.Add(self.addButton, 0, wx.ALIGN_LEFT | wx.LEFT, 10)
-        self.editButton = wx.Button(self, wx.ID_ANY, size=(48,32), label="Edit")
-        self.editButton.Bind(wx.EVT_BUTTON, self.__edit_task)
-        row_sizer.Add(self.editButton, 0, wx.ALIGN_LEFT)
-        self.deleteButton = wx.Button(self, wx.ID_ANY, size=(32,32), label="-")
-        self.deleteButton.Bind(wx.EVT_BUTTON, self.__delete_task)
-        row_sizer.Add(self.deleteButton, 0, wx.ALIGN_LEFT)
+        self.btn_add = wx.Button(self, wx.ID_ANY, size=(32, 32), label="+")
+        self.btn_add.Bind(wx.EVT_BUTTON, self.__add_new_task)
+        row_sizer.Add(self.btn_add, 0, wx.ALIGN_LEFT | wx.LEFT, 10)
+
+        self.btn_edit = wx.Button(self, wx.ID_ANY, size=(48, 32), label="Edit")
+        self.btn_edit.Bind(wx.EVT_BUTTON, self.__edit_task)
+        self.btn_edit.Disable()
+        row_sizer.Add(self.btn_edit, 0, wx.ALIGN_LEFT)
+
+        self.btn_delete = wx.Button(self, wx.ID_ANY, size=(32, 32), label="-")
+        self.btn_delete.Bind(wx.EVT_BUTTON, self.__delete_task)
+        self.btn_delete.Disable()
+        row_sizer.Add(self.btn_delete, 0, wx.ALIGN_LEFT)
         main_sizer.Add(row_sizer, 0, wx.ALIGN_LEFT)
 
+        # add the operational buttons
         row_sizer = wx.BoxSizer()
         self.btn_close = wx.Button(self, wx.ID_EXIT, label="Close")
         self.btn_close.Bind(wx.EVT_BUTTON, self.__on_close)
         row_sizer.Add(self.btn_close, 0, 0)
-        self.launchButton = wx.Button(self, wx.ID_ANY, label="Launch")
-        self.launchButton.Bind(wx.EVT_BUTTON, self.__launch_script)
-        row_sizer.Add(self.launchButton, 0, wx.LEFT | wx.BOTTOM | wx.RIGHT, 10)
+
+        self.btn_launch = wx.Button(self, wx.ID_ANY, label="Launch")
+        self.btn_launch.Bind(wx.EVT_BUTTON, self.__launch_command)
+        row_sizer.Add(self.btn_launch, 0, wx.LEFT | wx.BOTTOM | wx.RIGHT, 10)
         main_sizer.Add(row_sizer, 0, wx.ALIGN_RIGHT)
 
         self.SetSizer(main_sizer)
 
-    def load_tasks(self):
-        filename = sys.path[0] + '/pylaunch.cfg'
-        if (os.path.exists(filename)):
-            # config file exists, load tasks
-            with open(filename, 'r') as f:
-                data = yaml.load(f, Loader=yaml.FullLoader)
-                if data['Tasks'] != None:
-                    # load the list of task objects
-                    for task in data['Tasks']:
-                        self.tasks.append(TaskObject(task))
-                    # Sort by frequency of invocation
-                    self.tasks.sort(key=lambda task: task.invoked, reverse=True)
-
-        else:
-            # open file for writing
-            with open(filename, 'w') as f:
-                f.write('# pylaunch.cfg\n\nTasks:\n')
-
-
     # Event Handlers
-    def __add_new_task(self):
-        pass
+    def __add_new_task(self, event):
+        """
+        Add task to task object list
+        """
+        task = TaskObject()
+        res, task = self.__call_add_edit_dialog(task, True)
+        if res == 1:
+            # add task object to tasks
+            self.tasks.append(task)
+            self.__save_tasks()
 
-    def __delete_task(self):
-        pass
+    def __delete_task(self, event):
+        """
+        Delete task from task object list
+        """
+        task = self.olv_tasks.GetSelectedObject()
+        del self.tasks[self.tasks.index(task)]
+        self.__save_tasks()
 
-    def __edit_task(self):
-        pass
-
-    def __launch_script(self):
-        pass
+    def __edit_task(self, event):
+        """
+        Edit task in task object list
+        """
+        res, task = self.__call_add_edit_dialog(self.olv_tasks.GetSelectedObject(), False)
+        if res == 1:
+            # Refresh list
+            self.__save_tasks()
 
     def __on_close(self, event):
+        """
+        Close application
+        """
         event.Skip()
 
-    def __item_activated(self, event):
-        print(f'Selected item: {self.tasksOlv.GetSelectedObject().__dict__}')
+    def __launch_command(self, event):
+        """
+        Launch command from selected task object
+        """
+        task = self.olv_tasks.GetSelectedObject()
+        if task.command != '' and task.command is not None:
+            os.system(task.command)
+        task.invoked += 1
+        # save task data
+        self.__save_tasks()
+        self.__load_tasks()
 
+    def __on_key_down(self, event):
+        """
+        Manage Enter key from ObjectListView control
+        :param event:
+        :type event:
+        :return:
+        :rtype:
+        """
+        if (event.GetKeyCode() == 13):
+            self.__launch_command(event)
+
+    def __select_item(self, event):
+        """
+        Enable buttons when an object is selected
+        """
+        self.btn_edit.Enable()
+        self.btn_delete.Enable()
+
+    def __unselect_item(self, event):
+        """
+        Disable buttons when an object is unselected
+        """
+        self.btn_edit.Disable()
+        self.btn_delete.Disable()
+
+    # Helper methods
+    def __call_add_edit_dialog(self, task, addFlag):
+        """
+        Invoke the editor dialog
+        :param task: selected task object (if editing) or new task object
+        :type task: TaskObject
+        :param addFlag: Signal whether object is being editor or added
+        :type addFlag: Boolean
+        :return: res, task
+        :rtype: integer, TaskObject
+        """
+        res = 0
+        with EditorDialog(task, addFlag) as dlg:
+            res = dlg.ShowModal()
+        return res, dlg.task
+
+    def __load_tasks(self):
+        """
+        Private method to load tasks from the configuration file
+        """
+        # does the file exist?
+        if (os.path.exists(self.cfg_filename) == False):
+            # no, create an empty file
+            with open(self.cfg_filename, 'w') as f:
+                f.write('# pydevmgr.cfg\n\n')
+        else:
+            # check for Tasks list
+            with open(self.cfg_filename, 'r+') as f:
+                d = f.read()
+                f.seek(0, 0)
+
+                # load task list
+                tasks = yaml.load(f, Loader=yaml.FullLoader)
+                if tasks != None:
+                    # process the tasks into objects
+                    for t in tasks:
+                        task = TaskObject(task_name=t['task_name'],
+                                          description=t['description'],
+                                          command=t['command'],
+                                          invoked=t['invoked'])
+                        self.tasks.append(task)
+                        self.tasks.sort(key=lambda item: item.invoked, reverse=True)
+                else:
+                    f.write('# pydevmgr.cfg\n\n')
+
+    def __save_tasks(self):
+        """
+        Save the task objects to persistent storage
+        """
+        tasklist = []
+        for t in self.tasks:
+            tasklist.append(t.__dict__)
+        with open(self.cfg_filename, 'w') as f:
+            f.write('# pydevmgr.cfg\n\n')
+            yaml.dump(tasklist, f, sort_keys=True)
+        self.olv_tasks.SetObjects(self.tasks)
