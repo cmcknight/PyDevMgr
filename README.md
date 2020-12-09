@@ -1,12 +1,26 @@
 # PyDevMgr
 
-PyDevMgr provides a desktop GUI for launching shell scripts and applications. The launch parameters are stored in a YAML file in the application directory. This project uses the wxPython library to provide cross-platform support.
+PyDevMgr provides a desktop GUI for launching shell scripts and applications. This project uses the wxPython library to provide cross-platform support.
 
 The PyDevMgr displays the names of the tasks, sorted in a descending order based on the number of times the task has been invoked.
 
+## pydevmgr.cfg YAML Format
+
+The task parameters are stored in a YAML-formatted file in the application directory.
+
+**Sample File**
+```
+# pydevmgr.cfg
+
+- command: ~/bin/ffdev
+  description: Farmer Frog Developent Environment
+  invoked: 1
+  task_name: Farmer Frog Dev
+```
+
 ## Requirements
 
-This project was built using Python 3.8.6 and the following libraries:
+This project was built using Python 3.9.0 and the following libraries:
 
 
 | Library | Version |
@@ -25,8 +39,10 @@ Having just updated to Mac Big Sur and Python 3.9, I am saddened to see that pyi
 ## ToDos
 
 [ ] Add accelerators for keyboard shortcuts
-[ ] Create iconset
+[X] Create iconset<sup><a href="#fn1">1</a></sup>
 [ ] Package application for Linux, Windows, Max OS
 [ ] Add binding to handle application minimization
 [ ] Add binding to handle application restoration from being minimized
 [ ] Ensure that application does not maximize
+<hr style="width: 10rem; height: 1px; border: none; background: #000;">
+<sup id="fn1">1</sup>Iconset has been created; Will proceed when pyinstaller/py2app work with Big Sur<a href="#fnid1">&#x21a9;</a>
