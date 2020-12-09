@@ -13,6 +13,7 @@ class MainFrame(wx.Frame):
         super().__init__(None, title='pylaunch', style=flags, size=wx.Size(400,600))
         panel = MainPanel(self)
         self.Bind(wx.EVT_BUTTON, self.__on_close, id=wx.ID_EXIT)
+        self.Bind(wx.EVT_BUTTON, self.__on_close, )
         self.Show()
 
     def __on_close(self, event):

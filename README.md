@@ -21,3 +21,12 @@ This project was built using Python 3.8.6 and the following libraries:
 ## Notes
 
 Having just updated to Mac Big Sur and Python 3.9, I am saddened to see that pyinstaller is currently non-functional due to Apple changing where/how some of the necessary system libraries are stored. As soon as that issue gets resolved, I will create distribution packages.
+
+## ToDos
+
+[ ] Add accelerators for keyboard shortcuts
+[ ] Create iconset
+[ ] Package application for Linux, Windows, Max OS
+[ ] Add binding to handle application minimization
+[ ] Add binding to handle application restoration from being minimized
+[ ] Ensure that application does not maximize
