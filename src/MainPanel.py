@@ -21,7 +21,7 @@ class MainPanel(wx.Panel):
         """
         super().__init__(parent)
 
-        font = wx.Font(14, wx.SWISS, wx.NORMAL, wx.NORMAL)
+        font = wx.Font(12, wx.SWISS, wx.NORMAL, wx.NORMAL)
         self.cfg_filename = sys.path[0] + '/pydevmgr.cfg'
         self.tasks = []
         self.__load_tasks()
