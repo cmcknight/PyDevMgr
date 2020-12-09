@@ -17,3 +17,7 @@ This project was built using Python 3.8.6 and the following libraries:
 | PyYAML | ==5.3.1 |
 | six | ==1.15.0 |
 | wxPython | ==4.1.1 |
+
+## Notes
+
+Having just updated to Mac Big Sur and Python 3.9, I am saddened to see that pyinstaller is currently non-functional due to Apple changing where/how some of the necessary system libraries are stored. As soon as that issue gets resolved, I will create distribution packages.
