@@ -15,12 +15,13 @@ class MainPanel(wx.Panel):
     for the PyDevMgr application.
     """
 
+
     def __init__(self, parent):
         """
         Class constructor
         """
         super().__init__(parent)
-
+        self.parent = parent
         font = wx.Font(12, wx.SWISS, wx.NORMAL, wx.NORMAL)
         self.cfg_filename = sys.path[0] + '/pydevmgr.cfg'
         self.tasks = []
@@ -41,7 +42,7 @@ class MainPanel(wx.Panel):
         main_sizer.Add(self.olv_tasks, 1, wx.EXPAND | wx.LEFT | wx.TOP | wx.RIGHT, 10)
 
         # ObjectListView control event handlers
-        self.olv_tasks.Bind(wx.EVT_KEY_DOWN, self.__on_key_down)
+        self.olv_tasks.Bind(wx.EVT_KEY_DOWN, self.__on_olv_keydown)
         self.olv_tasks.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.__launch_command)
         self.olv_tasks.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.__unselect_item)
         self.olv_tasks.Bind(wx.EVT_LIST_ITEM_SELECTED, self.__select_item)
@@ -72,9 +73,15 @@ class MainPanel(wx.Panel):
         self.btn_launch = wx.Button(self, wx.ID_ANY, label="Launch")
         self.btn_launch.Bind(wx.EVT_BUTTON, self.__launch_command)
         row_sizer.Add(self.btn_launch, 0, wx.LEFT | wx.BOTTOM | wx.RIGHT, 10)
-        main_sizer.Add(row_sizer, 0, wx.ALIGN_RIGHT)
-
+        main_sizer.Add(row_sizer, 0, wx.ALIGN_CENTER | wx.TOP, 10)
+        self.Bind(wx.EVT_KEY_DOWN, self.__on_keydown)
         self.SetSizer(main_sizer)
+
+    def __on_keydown(self, event):
+        keycode = event.GetKeyCode()
+        modifier = event.GetModifiers()
+        if keycode == ord('Q') and modifier == wx.MOD_CONTROL:
+            self.parent.Close()
 
     # Event Handlers
     def __add_new_task(self, event):
@@ -111,6 +118,7 @@ class MainPanel(wx.Panel):
         """
         event.Skip()
 
+
     def __launch_command(self, event):
         """
         Launch command from selected task object
@@ -121,9 +129,9 @@ class MainPanel(wx.Panel):
         task.invoked += 1
         # save task data
         self.__save_tasks()
-        self.__load_tasks()
+        self.olv_tasks.RefreshObjects(self.olv_tasks)
 
-    def __on_key_down(self, event):
+    def __on_olv_keydown(self, event):
         """
         Manage Enter key from ObjectListView control
         :param event:
@@ -131,7 +139,8 @@ class MainPanel(wx.Panel):
         :return:
         :rtype:
         """
-        if (event.GetKeyCode() == 13):
+        keycode = event.GetKeyCode()
+        if (keycode == 13):
             self.__launch_command(event)
 
     def __select_item(self, event):
