@@ -1,0 +1,4 @@
+.idea/
+pydevmgr.cfg
+venv/
+__pycache__
