@@ -36,7 +36,7 @@ class MainPanel(wx.Panel):
                                         typingSearchesSortColumn=False)
         self.olv_tasks.SetColumns([ColumnDefn('Task', 'left', -1, 'task_name',
                                               isSpaceFilling=True, isEditable=False,
-                                              isSearchable=False)])
+                                              isSearchable=False, minimumWidth=300)])
         self.olv_tasks.SetObjects(self.tasks)
         self.olv_tasks.SetFont(font)
         main_sizer.Add(self.olv_tasks, 1, wx.EXPAND | wx.LEFT | wx.TOP | wx.RIGHT, 10)
