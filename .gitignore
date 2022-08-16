@@ -3,3 +3,5 @@ pydevmgr.cfg
 venv/
 __pycache__
 .DS_Store
+nohup.out
+.gitignore.swp
